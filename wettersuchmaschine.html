@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Wetter App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+        integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <style>
+        body {
+            text-align: center;
+            background: #F7F7F7;
+            color: #333;
+            padding: 10px;
+        }
+
+        h1 {
+            color: #007BFF;
+            padding-bottom: 10px;
+        }
+
+        input[type="text"] {
+            border-radius: 5px;
+            border: 1px solid #007BFF;
+            padding: 10px 20px;
+            width: calc(100% - 70px);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        ul {
+            display: flex;
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+            flex-wrap: wrap;
+        }
+
+        li {
+            background-color: #EFF2F5;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+        #weather-results {
+            background-color: #dcebfa;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: left;
+            margin-top: 20px;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.16);
+            display: inline-block;
+
+        }
+
+        #label-searches {
+            text-align: right;
+
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .text-field {
+            display: flex;
+            margin-left: 5px;
+            margin-top: 15px;
+            font-size: 24px;
+            color: #007BFF;
+        }
+
+        #date {
+            font-size: 14px;
+            color: #f1691a;
+            font-weight: 500;
+
+        }
+
+        #city-name {
+            font-size: 24px;
+            font-weight: 900;
+            display: flex;
+
+        }
+
+        .degree-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+
+        }
+
+        #city-icon img {
+            width: 48px;
+        }
+
+        #city-temprature {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        #city-description {
+            margin-top: 5px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Wetter App</h1>
+    <input type="text" id="city-input" placeholder="Geben Sie eine Stadt ein..." />
+    <button id="search-btn">Suchen</button><br>
+
+    <div id="weather-results">
+
+    </div>
+
+
+    <div class="text-field">
+        <label id="label-searches">
+            Letzten Suchen
+        </label>
+    </div>
+    <ul id="past-searches">
+
+    </ul>
+
+    <script>
+
+        let cityInput = document.getElementById('city-input');
+        let searchBtn = document.getElementById('search-btn');
+        let pastSearches = document.getElementById('past-searches');
+        let weatherResults = document.getElementById('weather-results');
+        let labelSearches = document.getElementById('label-searches');
+
+        // Array für die Städtenamen
+        let cities = []
+
+        // Fügt einen Event-Listener zum "searchBtn"-Element hinzu, der auf "click"-Events reagiert
+        searchBtn.addEventListener('click', function () {
+            // Ruft die "getData"-Funktion auf, wenn das "searchBtn"-Element angeklickt wird
+            // Der Wert des "cityInput"-Elements wird als Argument an die "getData"-Funktion übergeben
+            getData(cityInput.value)
+                // Wenn das Promise, das von "getData" zurückgegeben wird, erfüllt ist (d.h. die Daten wurden erfolgreich abgerufen),
+                // wird die "handleData"-Funktion aufgerufen, wobei das erfüllte Wert (die abgerufenen Daten) als Argument übergeben wird
+                .then(handleData);
+            cityInput.value = ''
+        });
+
+        cityInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                // Code, der ausgeführt wird, wenn die Enter-Taste gedrückt wird
+                getData(cityInput.value)
+                    .then(handleData);
+            }
+        });
+
+
+        // Die "getData"-Funktion nimmt einen Städtenamen als Argument und ruft Wetterdaten für diese Stadt ab
+        function getData(city) {
+            // Sendet eine Fetch-Anfrage an die OpenWeatherMap API
+            // Die URL der Anfrage enthält den Städtenamen, der als Argument an die Funktion übergeben wurde
+            return fetch('https://api.openweathermap.org/data/2.5/weather?q=' + city + '&units=metric&limit=1&lang=de&appid=416ebc3534577edf9af5bc5e8846904e')
+                // Wenn die Fetch-Anfrage erfolgreich war, wird die Antwort in ein JSON-Objekt konvertiert
+                .then(response => response.json())
+                // Wenn ein Fehler bei der Fetch-Anfrage auftritt, wird der Fehler in der Konsole ausgegeben
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Die "handleData"-Funktion nimmt die abgerufenen Daten als Argument und verarbeitet diese Daten
+        function handleData(data) {
+            // Gibt die abgerufenen Daten in der Konsole aus
+            console.log(data);
+            // Erstellt ein Objekt mit den relevanten Daten
+
+            // Extrahiert den Icon-Code aus den Daten
+            const iconCode = data.weather[0].icon;
+            // Erstellt die URL mit dem Icon-Code
+            const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+            const cityData = {
+                name: data.name,
+                description: data.weather[0].description,
+                icon: iconUrl,  // Verwendet die erstellte URL
+                temp: data.main.temp,
+                country: data.sys.country
+            }
+
+            // Überprüft, ob das Array bereits ein Objekt mit dem gleichen Stadtnamen enthält
+            const cityExists = cities.some(city => city === cityData.name);
+
+            // Fügt das Objekt nur dann zum Array hinzu, wenn es noch nicht vorhanden ist
+            if (!cityExists) {
+                cities.push(cityData.name);
+            }
+
+            // Konvertiert das Array in einen JSON-String und speichert es im Local Storage
+            savelocalStorage()
+            renderSearch(cityData)
+            renderSearchHistory()
+
+        }
+
+
+        function savelocalStorage() {
+            localStorage.setItem('cities', JSON.stringify(cities))
+        }
+
+        function loadLocalStorage() {
+            cities = JSON.parse(localStorage.getItem('cities')) || [];
+        }
+
+        function renderSearch(cityData) {
+            console.log(cityData)
+            weatherResults.innerHTML = `
+            <div>
+                <div id="date">${dateFormatted}</div>
+                <div id="city-name">${cityData.name}
+                    <div id="city-country">, ${cityData.country}</div>
+                </div>
+                <div id="city-description">${cityData.description}</div>
+                <div class="degree-container">
+                    <div id="city-icon">
+                        <img src="${cityData.icon}" alt="weather-icon">
+                    </div>
+                    <div id="city-temprature">${cityData.temp} °C</div>
+                </div>
+            </div>
+        `;
+            cityInput.value = '';
+            emptyChildElement()
+
+        }
+
+
+
+        // Generieren der Suchergebnis mit den Stadtnamen aus dem localStorage
+        function renderSearchHistory() {
+            loadLocalStorage()
+            pastSearches.innerHTML = '';
+            for (let i = 0; i < cities.length; i++) {
+                const city = cities[i];
+                pastSearches.innerHTML +=
+                    `
+            <li id="list-element${i}">
+            <div>
+                ${city}
+            </div>
+            </li>
+            `;
+
+            }
+        }
+
+
+        // Füge einen EventListener zum 'click'-Event von 'pastSearches' hinzu.
+        // Dieser EventListener wird jedes Mal ausgelöst, wenn auf ein Element innerhalb von 'pastSearches' geklickt wird.
+        pastSearches.addEventListener('click', function (event) {
+            // 'event.target' ist das Element, auf das tatsächlich geklickt wurde.
+            // Wir verwenden 'innerText', um den Text dieses Elements zu erhalten.
+            // Da jedes Listenelement nur den Namen einer Stadt enthält, sollte 'clickedCity' der Name der angeklickten Stadt sein.
+            const clickedCity = event.target.innerText;
+
+            // Dann überprüfen wir, ob 'clickedCity' in unserem 'cities'-Array vorhanden ist.
+            // 'cities.includes(clickedCity)' gibt 'true' zurück, wenn 'clickedCity' in 'cities' gefunden wird, und 'false' sonst.
+            if (cities.includes(clickedCity)) {
+                // Wenn 'clickedCity' in 'cities' gefunden wird, rufen wir die 'getData'-Funktion mit 'clickedCity' als Argument auf.
+                // 'getData(clickedCity)' führt einen Fetch-Request durch, um die Daten für 'clickedCity' zu erhalten.
+                // '.then(handleData)' sagt, dass nachdem die Daten erhalten wurden, die 'handleData'-Funktion aufgerufen werden soll, um die Daten zu verarbeiten.
+                getData(clickedCity).then(handleData);
+            }
+            emptyChildElement()
+        });
+
+        function emptyChildElement() {
+            // Überprüfen Sie, ob der weatherResults Container Kind-Elemente hat
+            if (weatherResults.children.length > 0) {
+                // Wenn er Kind-Elemente hat, stellen Sie sicher, dass er angezeigt wird
+                weatherResults.style.display = 'inline-block';
+            } else {
+                // Wenn er keine Kind-Elemente hat, verstecken Sie ihn
+                weatherResults.style.display = 'none';
+            }
+
+            // Schauen ob der Local Storage leer ist und Label ein oder ausblenden
+
+            if (localStorage.getItem('cities') === null) {
+                console.log('Local Storage ist leer');
+                labelSearches.classList.add('hidden')
+            } else {
+                console.log('Local Storage enthält Daten')
+                labelSearches.classList.remove('hidden');
+            }
+
+        }
+
+
+
+        function init() {
+            renderSearchHistory()
+            emptyChildElement()
+        }
+
+
+        window.addEventListener('load', function () {
+            console.log('load-Eventlistener wurde aufgerufen');
+            init();
+
+        });
+
+        // Datum generieren
+        let jetzt = new Date();
+
+        let tag = jetzt.getDate();
+        let monat = jetzt.getMonth() + 1;  // Monate beginnen bei 0
+        let vollerMonat = jetzt.toLocaleString('default', { month: 'long' });
+        let dreiBuchstabenMonat = vollerMonat.substring(0, 3);
+        let jahr = jetzt.getFullYear();
+
+        let stunden = jetzt.getHours();
+        let minuten = jetzt.getMinutes();
+        let sekunden = jetzt.getSeconds();
+
+        dateFormatted = (dreiBuchstabenMonat + ' ' + jahr + ',' + stunden + ":" + minuten + ":" + sekunden)
+
+        console.log("Datum: " + tag + "." + monat + "." + jahr);
+        console.log("Uhrzeit: " + stunden + ":" + minuten + ":" + sekunden);
+        console.log(dateFormatted)
+
+    </script>
+</body>
+
+</html>
